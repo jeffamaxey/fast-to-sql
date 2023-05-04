@@ -22,16 +22,14 @@ def _check_duplicate_cols(df):
     """Returns duplicate column names (case insensitive)
     """
     cols = [c.lower() for c in df.columns]
-    dups = [x for x in cols if cols.count(x) > 1]
-    if dups:
+    if dups := [x for x in cols if cols.count(x) > 1]:
         raise errors.DuplicateColumns(f"There are duplicate column names. Repeated names are: {dups}. SQL Server dialect requires unique names (case insensitive).")
 
 def _clean_col_name(column):
     """Removes special characters from column names
     """
     column = str(column).replace(" ", "_").replace("(","").replace(")","").replace("[","").replace("]","")
-    column = f"[{column}]"
-    return column
+    return f"[{column}]"
 
 def _clean_custom(df, custom):
     """Validate and clean custom columns
@@ -53,10 +51,7 @@ def _get_data_types(df, custom):
             data_types[c] = custom[c]
             continue
         dtype = str(df[c].dtype)
-        if dtype not in DTYPE_MAP:
-            data_types[c] = "varchar(255)"
-        else:
-            data_types[c] = DTYPE_MAP[dtype]
+        data_types[c] = "varchar(255)" if dtype not in DTYPE_MAP else DTYPE_MAP[dtype]
     return data_types
 
 def _get_default_schema(cur: pyodbc.Cursor) -> str:
@@ -112,7 +107,7 @@ def fast_to_sql(df, name, conn, if_exists='append', custom=None, temp=False, cop
     """
     if copy:
         df = df.copy()
-    
+
     # Assign null custom
     if custom is None:
         custom = {}
@@ -162,9 +157,9 @@ def fast_to_sql(df, name, conn, if_exists='append', custom=None, temp=False, cop
 
     # Run insert
     if temp:
-        insert_sql = f"insert into [{name}] values ({','.join(['?' for v in data_types])})"
+        insert_sql = f"insert into [{name}] values ({','.join(['?' for _ in data_types])})"
     else:
-        insert_sql = f"insert into [{schema}].[{name}] values ({','.join(['?' for v in data_types])})"
+        insert_sql = f"insert into [{schema}].[{name}] values ({','.join(['?' for _ in data_types])})"
     insert_cols = df.values.tolist()
     insert_cols = [[None if type(cell) == float and np.isnan(cell) else cell for cell in row] for row in insert_cols]
     cur.fast_executemany = True

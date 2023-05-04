@@ -23,11 +23,11 @@ class FastToSQLTests(unittest.TestCase):
         cls.conn = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=test;UID=sa;PWD=Pass@word;")
 
     @classmethod
-    def tearDown(self):
+    def tearDown(cls):
         tables = ["test_table1","test_table2","test_table3","test_table4","test_table5","testy1","testy2"]
         for t in tables:
-            self.conn.execute(f"DROP TABLE IF EXISTS {t}")
-        self.conn.commit()
+            cls.conn.execute(f"DROP TABLE IF EXISTS {t}")
+        cls.conn.commit()
 
     def test_clean_cols(self):
         clean_cols = [fts._clean_col_name(c) for c in list(self.TEST_DF.columns)]
